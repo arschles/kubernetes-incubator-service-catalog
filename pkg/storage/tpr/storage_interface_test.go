@@ -64,14 +64,20 @@ func TestCreate(t *testing.T) {
 		t.Fatal("no broker was in storage")
 	}
 	if !reflect.DeepEqual(outBroker, obj) {
-		t.Fatalf("output and object in storage are different: %s", diff.ObjectReflectDiff(outBroker, obj))
+		t.Fatalf(
+			"output and object in storage are different: %s",
+			diff.ObjectReflectDiff(outBroker, obj),
+		)
 	}
 	// Output and what's in storage should be known to be deeply equal at this
 	// point. Compare either of those to what was passed in. The only diff should
 	// be resource version, so we will clear that first.
 	outBroker.ResourceVersion = ""
 	if !reflect.DeepEqual(broker, outBroker) {
-		t.Fatalf("input and output are different: %s", diff.ObjectReflectDiff(broker, outBroker))
+		t.Fatalf(
+			"input and output are different: %s",
+			diff.ObjectReflectDiff(broker, outBroker),
+		)
 	}
 }
 
@@ -85,11 +91,16 @@ func TestRemoveNamespace(t *testing.T) {
 		t.Fatalf("couldn't remove namespace (%s", err)
 	}
 	if obj.Namespace != "" {
-		t.Fatalf("couldn't remove namespace from object. it is still %s", obj.Namespace)
+		t.Fatalf(
+			"couldn't remove namespace from object. it is still %s",
+			obj.Namespace,
+		)
 	}
 }
 
-func getTPRStorageIFaceAndFakeCoreRESTClient(t *testing.T) (*store, *fakeCoreRESTClient) {
+func getTPRStorageIFaceAndFakeCoreRESTClient(
+	t *testing.T,
+) (*store, *fakeCoreRESTClient) {
 	keyer := Keyer{
 		DefaultNamespace: namespace,
 		ResourceName:     ServiceBrokerKind.String(),
