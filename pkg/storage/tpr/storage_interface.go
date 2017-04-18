@@ -319,36 +319,47 @@ func (t *store) List(
 	p storage.SelectionPredicate,
 	listObj runtime.Object,
 ) error {
+	// if the resource has no namespace, just list all the resources in the default namespace
+	if !t.hasNamespace {
+		objs, err := listResource(t.cl, t.defaultNamespace, t.singularKind, listObj, t.codec)
+		if err != nil {
+			glog.Errorf("listing resources (%s)", err)
+			return err
+		}
+		for i, obj := range objs {
+			if err := removeNamespace(obj); err != nil {
+				glog.Errorf("removing namespace from obj %d (%s)", i, err)
+				return err
+			}
+		}
+		if err := meta.SetList(listObj, objs); err != nil {
+			glog.Errorf("setting list items (%s)", err)
+			return err
+		}
+		return nil
+	}
 	ns, _, err := t.decodeKey(key)
 	if err != nil {
 		glog.Errorf("decoding %s (%s)", key, err)
 		return err
 	}
-
-	req := t.cl.Get().AbsPath(
-		"apis",
-		groupName,
-		tprVersion,
-		"namespaces",
-		ns,
-		t.singularKind.URLName(),
-	)
-
-	var unknown runtime.Unknown
-	if err := req.Do().Into(&unknown); err != nil {
-		glog.Errorf("doing request (%s)", err)
+	allNamespaces, err := getAllNamespaces(cl)
+	if err != nil {
+		glog.Errorf("listing all namespaces (%s)", err)
 		return err
 	}
-
-	if err := decode(t.codec, nil, unknown.Raw, listObj); err != nil {
-		return err
-	}
-
-	if !t.hasNamespace {
-		if err := meta.EachListItem(listObj, removeNamespace); err != nil {
-			glog.Errorf("removing namespace from all items in list (%s)", err)
+	var objList []runtime.Object
+	for _, ns := range allNamespaces {
+		allObjs, err := listResource(t.cl, ns, t.singularKind, listObj, t.codec)
+		if err != nil {
+			glog.Errorf("error listing resources (%s)", err)
 			return err
 		}
+		objList = append(objList, allObjs...)
+	}
+	if err := meta.SetList(listObj, objList); err != nil {
+		glog.Errorf("setting list items (%s)", err)
+		return err
 	}
 	return nil
 }
