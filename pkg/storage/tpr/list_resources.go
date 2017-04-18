@@ -61,7 +61,7 @@ func listResource(
 
 // getAllNamespaces uses cl to get all namespaces
 func getAllNamespaces(cl restclient.Interface) (*v1.NamespaceList, error) {
-	req := cl.Get().AbsPath("apis", "v1", "namespaces")
+	req := cl.Get().AbsPath("api", "v1", "namespaces")
 	var nsList v1.NamespaceList
 	if err := req.Do().Into(&nsList); err != nil {
 		glog.Errorf("getting all namespaces (%s)", err)
