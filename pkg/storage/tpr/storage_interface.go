@@ -319,45 +319,55 @@ func (t *store) List(
 	p storage.SelectionPredicate,
 	listObj runtime.Object,
 ) error {
-	// if the resource has no namespace, just list all the resources in the default namespace
-	if !t.hasNamespace {
-		objs, err := listResource(t.cl, t.defaultNamespace, t.singularKind, listObj, t.codec)
-		if err != nil {
-			glog.Errorf("listing resources (%s)", err)
-			return err
-		}
-		for i, obj := range objs {
-			if err := removeNamespace(obj); err != nil {
-				glog.Errorf("removing namespace from obj %d (%s)", i, err)
-				return err
-			}
-		}
-		if err := meta.SetList(listObj, objs); err != nil {
-			glog.Errorf("setting list items (%s)", err)
-			return err
-		}
-		return nil
-	}
 	ns, _, err := t.decodeKey(key)
 	if err != nil {
 		glog.Errorf("decoding %s (%s)", key, err)
 		return err
 	}
-	allNamespaces, err := getAllNamespaces(cl)
-	if err != nil {
-		glog.Errorf("listing all namespaces (%s)", err)
-		return err
-	}
-	var objList []runtime.Object
-	for _, ns := range allNamespaces {
-		allObjs, err := listResource(t.cl, ns, t.singularKind, listObj, t.codec)
+
+	if t.hasNamespace && ns == t.defaultNamespace {
+		// if the resource is supposed to have a namespace, and the given one is the default,
+		// then assume that '--all-namespaces' was given on the kubectl command line.
+		// this assumption means that a kubectl command that specifies a namespace equal to
+		// the default namespace (i.e. '-n default-ns'), we will still list all resources.
+		//
+		// to list all resources, we get all namespaces, list all resources in each namespace,
+		// and then collect all resources into the single listObj
+		allNamespaces, err := getAllNamespaces(t.cl)
 		if err != nil {
-			glog.Errorf("error listing resources (%s)", err)
+			glog.Errorf("listing all namespaces (%s)", err)
 			return err
 		}
-		objList = append(objList, allObjs...)
+		var objList []runtime.Object
+		for _, ns := range allNamespaces.Items {
+			allObjs, err := listResource(t.cl, ns.Name, t.singularKind, listObj, t.codec)
+			if err != nil {
+				glog.Errorf("error listing resources (%s)", err)
+				return err
+			}
+			objList = append(objList, allObjs...)
+		}
+		if err := meta.SetList(listObj, objList); err != nil {
+			glog.Errorf("setting list items (%s)", err)
+			return err
+		}
+		return nil
 	}
-	if err := meta.SetList(listObj, objList); err != nil {
+
+	// otherwise, list all the resources in the given namespace. if the resource is not supposed
+	// to be namespaced, then ns will be the default namespace
+	objs, err := listResource(t.cl, ns, t.singularKind, listObj, t.codec)
+	if err != nil {
+		glog.Errorf("listing resources (%s)", err)
+		return err
+	}
+	for i, obj := range objs {
+		if err := removeNamespace(obj); err != nil {
+			glog.Errorf("removing namespace from obj %d (%s)", i, err)
+			return err
+		}
+	}
+	if err := meta.SetList(listObj, objs); err != nil {
 		glog.Errorf("setting list items (%s)", err)
 		return err
 	}
