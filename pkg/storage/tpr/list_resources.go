@@ -21,6 +21,7 @@ import (
 	"k8s.io/apimachinery/pkg/api/meta"
 	"k8s.io/apimachinery/pkg/runtime"
 	restclient "k8s.io/client-go/rest"
+	"k8s.io/kubernetes/pkg/api/v1"
 )
 
 // listResource uses cl to get resources of the given kind from the given namespace, and decodes
@@ -56,6 +57,17 @@ func listResource(
 		return nil, err
 	}
 	return objs, nil
+}
+
+// getAllNamespaces uses cl to get all namespaces
+func getAllNamespaces(cl restclient.Interface) (*v1.NamespaceList, error) {
+	req := cl.Get().AbsPath("apis", "v1", "namespaces")
+	var nsList v1.NamespaceList
+	if err := req.Do().Into(&nsList); err != nil {
+		glog.Errorf("getting all namespaces (%s)", err)
+		return nil, err
+	}
+	return &nsList, nil
 }
 
 // stripNamespacesFromList removes the namespaces from each object in the list represented by obj
