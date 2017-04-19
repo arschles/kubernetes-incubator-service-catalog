@@ -17,7 +17,6 @@ limitations under the License.
 package tpr
 
 import (
-	"fmt"
 	"log"
 
 	"github.com/kubernetes-incubator/service-catalog/pkg/apis/servicecatalog"
@@ -30,10 +29,7 @@ import (
 
 func serviceCatalogAPIGroup() testapi.TestGroup {
 	// OOPS: didn't register the right group version
-	groupVersion, err := schema.ParseGroupVersion("servicecatalog.k8s.io/v1alpha1")
-	if err != nil {
-		panic(fmt.Sprintf("Error parsing groupversion: %v", err))
-	}
+	groupVersion := schema.GroupVersion{Group: servicecatalog.GroupName, Version: "v1alpha1"}
 
 	externalGroupVersion := schema.GroupVersion{
 		Group:   groupName,
