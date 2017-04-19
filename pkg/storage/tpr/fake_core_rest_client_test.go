@@ -201,28 +201,33 @@ func getItems(storage namespacedStorage) func(http.ResponseWriter, *http.Request
 			accessor.SetAPIVersion(item, "")
 			items = append(items, item)
 		}
-		list := &api.List{
-			TypeMeta: metav1.TypeMeta{
-				APIVersion: "servicecatalog.k8s.io/v1alpha1",
-			},
-			Items: items,
-		}
-		// list is actually an *api.List, but we're going to encode it as if it were
-		// a list for a specific type. This cheat sends the right bytes over the wire.
+		var list runtime.Object
 		var codec runtime.Codec
 		var err error
 		switch tipe {
 		case "brokers":
-			accessor.SetKind(list, "BrokerList")
+			list = &v1alpha1.BrokerList{TypeMeta: newTypeMeta(ServiceBrokerListKind)}
+			if err := meta.SetList(list, items); err != nil {
+				log.Fatalf("Error setting list items (%s)", err)
+			}
 			codec, err = testapi.GetCodecForObject(&v1alpha1.BrokerList{})
 		case "serviceclasses":
-			accessor.SetKind(list, "ServiceClassList")
+			list = &v1alpha1.ServiceClassList{TypeMeta: newTypeMeta(ServiceClassListKind)}
+			if err := meta.SetList(list, items); err != nil {
+				log.Fatalf("Error setting list items (%s)", err)
+			}
 			codec, err = testapi.GetCodecForObject(&v1alpha1.ServiceClassList{})
 		case "instances":
-			accessor.SetKind(list, "InstanceList")
+			list = &v1alpha1.InstanceList{TypeMeta: newTypeMeta(ServiceInstanceListKind)}
+			if err := meta.SetList(list, items); err != nil {
+				log.Fatalf("Error setting list items (%s)", err)
+			}
 			codec, err = testapi.GetCodecForObject(&v1alpha1.InstanceList{})
 		case "bindings":
-			accessor.SetKind(list, "BindingList")
+			list = &v1alpha1.BindingList{TypeMeta: newTypeMeta(ServiceBindingListKind)}
+			if err := meta.SetList(list, items); err != nil {
+				log.Fatalf("Error setting list items (%s)", err)
+			}
 			codec, err = testapi.GetCodecForObject(&v1alpha1.BindingList{})
 		default:
 			log.Fatalf("unrecognized resource type: %s", tipe)
