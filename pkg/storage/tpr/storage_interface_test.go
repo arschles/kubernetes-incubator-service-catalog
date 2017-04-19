@@ -67,14 +67,24 @@ func TestCreate(t *testing.T) {
 	}
 	// Confirm the output is identical to what is in storage (nothing funny
 	// happened during encoding / decoding the response).
+	// the object will have been encoded by the test coder as an unversioned
+	// servicecatalog.Broker type
 	obj := fakeCl.storage.get(namespace, ServiceBrokerKind.URLName(), name)
 	if obj == nil {
 		t.Fatal("no broker was in storage")
 	}
-	if !reflect.DeepEqual(outBroker, obj) {
+	var outBrokerUnversioned servicecatalog.Broker
+	if err := v1alpha1.Convert_v1alpha1_Broker_To_servicecatalog_Broker(
+		outBroker,
+		&outBrokerUnversioned,
+		nil,
+	); err != nil {
+		t.Fatalf("converting broker to unversioned (%s)", err)
+	}
+	if !reflect.DeepEqual(&outBrokerUnversioned, obj) {
 		t.Fatalf(
 			"output and object in storage are different: %s",
-			diff.ObjectReflectDiff(outBroker, obj),
+			diff.ObjectReflectDiff(&outBrokerUnversioned, obj),
 		)
 	}
 	// Output and what's in storage should be known to be deeply equal at this
