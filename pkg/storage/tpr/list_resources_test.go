@@ -19,6 +19,8 @@ package tpr
 import (
 	"testing"
 
+	_ "github.com/kubernetes-incubator/service-catalog/pkg/apis/servicecatalog/install"
+	"github.com/kubernetes-incubator/service-catalog/pkg/apis/servicecatalog/testapi"
 	"github.com/kubernetes-incubator/service-catalog/pkg/apis/servicecatalog/v1alpha1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -72,5 +74,44 @@ func TestGetAllNamespaces(t *testing.T) {
 	}
 	if nsList.Items[0].Name != ns1Name {
 		t.Fatalf("expected namespace with name %s, got %s instead", ns1Name, nsList.Items[0].Name)
+	}
+}
+
+func TestListResource(t *testing.T) {
+	const (
+		ns   = "testns"
+		kind = ServiceBrokerKind
+	)
+
+	cl := newFakeCoreRESTClient()
+	listObj := v1alpha1.BrokerList{TypeMeta: newTypeMeta(kind)}
+	codec, err := testapi.GetCodecForObject(&v1alpha1.BrokerList{TypeMeta: newTypeMeta(kind)})
+	if err != nil {
+		t.Fatalf("error getting codec (%s)", err)
+	}
+	objs, err := listResource(cl, ns, kind, &listObj, codec)
+	if err != nil {
+		t.Fatalf("error listing resource (%s)", err)
+	}
+	if len(objs) != 0 {
+		t.Fatalf("expected 0 objects returned, got %d instead", len(objs))
+	}
+	objStorage := newObjStorage()
+	objStorage["broker1"] = &v1alpha1.Broker{
+		TypeMeta:   newTypeMeta(kind),
+		ObjectMeta: metav1.ObjectMeta{Name: "broker1"},
+	}
+	objStorage["broker2"] = &v1alpha1.Broker{
+		TypeMeta:   newTypeMeta(kind),
+		ObjectMeta: metav1.ObjectMeta{Name: "broker2"},
+	}
+	cl.storage[ns] = newTypedStorage()
+	cl.storage[ns][ServiceBrokerKind.URLName()] = objStorage
+	objs, err = listResource(cl, ns, kind, &listObj, codec)
+	if err != nil {
+		t.Fatalf("error listing resource (%s)", err)
+	}
+	if len(objs) != len(objStorage) {
+		t.Fatalf("expected %d objects returned, got %d instead", len(objStorage), len(objs))
 	}
 }
