@@ -22,9 +22,9 @@ import (
 	"testing"
 
 	"github.com/kubernetes-incubator/service-catalog/pkg/apis/servicecatalog"
+	sc "github.com/kubernetes-incubator/service-catalog/pkg/apis/servicecatalog"
 	_ "github.com/kubernetes-incubator/service-catalog/pkg/apis/servicecatalog/install"
 	"github.com/kubernetes-incubator/service-catalog/pkg/apis/servicecatalog/testapi"
-	"github.com/kubernetes-incubator/service-catalog/pkg/apis/servicecatalog/v1alpha1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/diff"
 	"k8s.io/apiserver/pkg/endpoints/request"
@@ -40,18 +40,14 @@ func TestCreate(t *testing.T) {
 	keyer := getKeyer()
 	fakeCl := newFakeCoreRESTClient()
 	iface := getTPRStorageIFace(t, keyer, fakeCl)
-	broker := &v1alpha1.Broker{
-		TypeMeta: metav1.TypeMeta{
-			APIVersion: v1alpha1.SchemeGroupVersion.String(),
-			Kind:       ServiceBrokerKind.String(),
-		},
+	broker := &sc.Broker{
 		ObjectMeta: metav1.ObjectMeta{Name: name},
 	}
 	key, err := keyer.Key(request.NewContext(), name)
 	if err != nil {
 		t.Fatalf("error constructing key (%s)", err)
 	}
-	outBroker := &v1alpha1.Broker{}
+	outBroker := &sc.Broker{}
 	if err := iface.Create(
 		context.Background(),
 		key,
@@ -73,18 +69,10 @@ func TestCreate(t *testing.T) {
 	if obj == nil {
 		t.Fatal("no broker was in storage")
 	}
-	var outBrokerUnversioned servicecatalog.Broker
-	if err := v1alpha1.Convert_v1alpha1_Broker_To_servicecatalog_Broker(
-		outBroker,
-		&outBrokerUnversioned,
-		nil,
-	); err != nil {
-		t.Fatalf("converting broker to unversioned (%s)", err)
-	}
-	if !reflect.DeepEqual(&outBrokerUnversioned, obj) {
+	if !reflect.DeepEqual(outBroker, obj) {
 		t.Fatalf(
 			"output and object in storage are different: %s",
-			diff.ObjectReflectDiff(&outBrokerUnversioned, obj),
+			diff.ObjectReflectDiff(outBroker, obj),
 		)
 	}
 	// Output and what's in storage should be known to be deeply equal at this
@@ -125,7 +113,7 @@ func getKeyer() Keyer {
 }
 
 func getTPRStorageIFace(t *testing.T, keyer Keyer, restCl restclient.Interface) *store {
-	codec, err := testapi.GetCodecForObject(&v1alpha1.Broker{})
+	codec, err := testapi.GetCodecForObject(&sc.Broker{})
 	if err != nil {
 		t.Fatalf("error getting codec (%s)", err)
 	}

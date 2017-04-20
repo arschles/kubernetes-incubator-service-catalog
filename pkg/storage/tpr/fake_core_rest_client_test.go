@@ -25,8 +25,8 @@ import (
 	"strconv"
 
 	"github.com/gorilla/mux"
+	sc "github.com/kubernetes-incubator/service-catalog/pkg/apis/servicecatalog"
 	"github.com/kubernetes-incubator/service-catalog/pkg/apis/servicecatalog/testapi"
-	"github.com/kubernetes-incubator/service-catalog/pkg/apis/servicecatalog/v1alpha1"
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/conversion"
@@ -186,9 +186,7 @@ func getItems(storage namespacedStorage) func(http.ResponseWriter, *http.Request
 		items := make([]runtime.Object, 0, len(objs))
 		for _, obj := range objs {
 			// We need to strip away typemeta, but we don't want to tamper with what's
-			// in memory, so we're going to make a deep copy first. We can actually
-			// convert from a *runtime.Object to a *v1alpha1.Broker at the same
-			// time!
+			// in memory, so we're going to make a deep copy first.
 			objCopy, err := conversion.NewCloner().DeepCopy(obj)
 			if err != nil {
 				log.Fatalf("error performing deep copy: %s", err)
@@ -206,29 +204,29 @@ func getItems(storage namespacedStorage) func(http.ResponseWriter, *http.Request
 		var err error
 		switch tipe {
 		case "brokers":
-			list = &v1alpha1.BrokerList{TypeMeta: newTypeMeta(ServiceBrokerListKind)}
+			list = &sc.BrokerList{TypeMeta: newTypeMeta(ServiceBrokerListKind)}
 			if err := meta.SetList(list, items); err != nil {
 				log.Fatalf("Error setting list items (%s)", err)
 			}
-			codec, err = testapi.GetCodecForObject(&v1alpha1.BrokerList{})
+			codec, err = testapi.GetCodecForObject(&sc.BrokerList{})
 		case "serviceclasses":
-			list = &v1alpha1.ServiceClassList{TypeMeta: newTypeMeta(ServiceClassListKind)}
+			list = &sc.ServiceClassList{TypeMeta: newTypeMeta(ServiceClassListKind)}
 			if err := meta.SetList(list, items); err != nil {
 				log.Fatalf("Error setting list items (%s)", err)
 			}
-			codec, err = testapi.GetCodecForObject(&v1alpha1.ServiceClassList{})
+			codec, err = testapi.GetCodecForObject(&sc.ServiceClassList{})
 		case "instances":
-			list = &v1alpha1.InstanceList{TypeMeta: newTypeMeta(ServiceInstanceListKind)}
+			list = &sc.InstanceList{TypeMeta: newTypeMeta(ServiceInstanceListKind)}
 			if err := meta.SetList(list, items); err != nil {
 				log.Fatalf("Error setting list items (%s)", err)
 			}
-			codec, err = testapi.GetCodecForObject(&v1alpha1.InstanceList{})
+			codec, err = testapi.GetCodecForObject(&sc.InstanceList{})
 		case "bindings":
-			list = &v1alpha1.BindingList{TypeMeta: newTypeMeta(ServiceBindingListKind)}
+			list = &sc.BindingList{TypeMeta: newTypeMeta(ServiceBindingListKind)}
 			if err := meta.SetList(list, items); err != nil {
 				log.Fatalf("Error setting list items (%s)", err)
 			}
-			codec, err = testapi.GetCodecForObject(&v1alpha1.BindingList{})
+			codec, err = testapi.GetCodecForObject(&sc.BindingList{})
 		default:
 			log.Fatalf("unrecognized resource type: %s", tipe)
 		}
@@ -248,7 +246,7 @@ func createItem(storage namespacedStorage) func(rw http.ResponseWriter, r *http.
 		ns := mux.Vars(r)["namespace"]
 		tipe := mux.Vars(r)["type"]
 		// TODO: Is there some type-agnostic way to get the codec?
-		codec, err := testapi.GetCodecForObject(&v1alpha1.Broker{})
+		codec, err := testapi.GetCodecForObject(&sc.Broker{})
 		if err != nil {
 			log.Fatalf("error getting codec: %s", err)
 		}
@@ -308,7 +306,7 @@ func updateItem(storage namespacedStorage) func(http.ResponseWriter, *http.Reque
 			return
 		}
 		// TODO: Is there some type-agnostic way to get the codec?
-		codec, err := testapi.GetCodecForObject(&v1alpha1.Broker{})
+		codec, err := testapi.GetCodecForObject(&sc.Broker{})
 		if err != nil {
 			log.Fatalf("error getting codec: %s", err)
 		}

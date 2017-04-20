@@ -19,15 +19,15 @@ package tpr
 import (
 	"testing"
 
+	sc "github.com/kubernetes-incubator/service-catalog/pkg/apis/servicecatalog"
 	_ "github.com/kubernetes-incubator/service-catalog/pkg/apis/servicecatalog/install"
 	"github.com/kubernetes-incubator/service-catalog/pkg/apis/servicecatalog/testapi"
-	"github.com/kubernetes-incubator/service-catalog/pkg/apis/servicecatalog/v1alpha1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 func TestStripNamespacesFromList(t *testing.T) {
-	lst := v1alpha1.BrokerList{
-		Items: []v1alpha1.Broker{
+	lst := sc.BrokerList{
+		Items: []sc.Broker{
 			{
 				ObjectMeta: metav1.ObjectMeta{
 					Namespace: "testns1",
@@ -84,8 +84,8 @@ func TestListResource(t *testing.T) {
 	)
 
 	cl := newFakeCoreRESTClient()
-	listObj := v1alpha1.BrokerList{TypeMeta: newTypeMeta(kind)}
-	codec, err := testapi.GetCodecForObject(&v1alpha1.BrokerList{TypeMeta: newTypeMeta(kind)})
+	listObj := sc.BrokerList{TypeMeta: newTypeMeta(kind)}
+	codec, err := testapi.GetCodecForObject(&sc.BrokerList{TypeMeta: newTypeMeta(kind)})
 	if err != nil {
 		t.Fatalf("error getting codec (%s)", err)
 	}
@@ -97,11 +97,11 @@ func TestListResource(t *testing.T) {
 		t.Fatalf("expected 0 objects returned, got %d instead", len(objs))
 	}
 	objStorage := newObjStorage()
-	objStorage["broker1"] = &v1alpha1.Broker{
+	objStorage["broker1"] = &sc.Broker{
 		TypeMeta:   newTypeMeta(kind),
 		ObjectMeta: metav1.ObjectMeta{Name: "broker1"},
 	}
-	objStorage["broker2"] = &v1alpha1.Broker{
+	objStorage["broker2"] = &sc.Broker{
 		TypeMeta:   newTypeMeta(kind),
 		ObjectMeta: metav1.ObjectMeta{Name: "broker2"},
 	}
