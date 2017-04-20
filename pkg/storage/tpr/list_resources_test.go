@@ -28,13 +28,13 @@ import (
 func TestStripNamespacesFromList(t *testing.T) {
 	lst := v1alpha1.BrokerList{
 		Items: []v1alpha1.Broker{
-			v1alpha1.Broker{
+			{
 				ObjectMeta: metav1.ObjectMeta{
 					Namespace: "testns1",
 					Name:      "test1",
 				},
 			},
-			v1alpha1.Broker{
+			{
 				ObjectMeta: metav1.ObjectMeta{
 					Namespace: "testns2",
 					Name:      "test2",
