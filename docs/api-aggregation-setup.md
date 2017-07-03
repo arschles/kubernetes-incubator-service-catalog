@@ -1,4 +1,3 @@
-
 # Setting up Service Catalog for API Aggregation in Kubernetes
 
 The aggregator is a server that sits in front of the core API
@@ -15,7 +14,7 @@ certificate bundle to the APIService apiregistration endpoint.
 
 For development purposes, it is convenient to use the existing CA
 automatically set up by the kubernetes development environment. The
-[script in contrib](../contrib/svc-cat-apiserver-aggregation-tls-setup.sh)
+[script in the catalog chart](../charts/catalog/aggregation-tls-setup.sh)
 generates a fresh CA and certificate setup, without using any existing
 kubernetes infrastructure CAs or certificates. This script should be
 `source`ed to define all of the variables it contains in the current
@@ -179,9 +178,11 @@ keys we just generated inline.
 
 ```
 helm install charts/catalog \
-    --name ${HELM_NAME} --namespace ${SVCCAT_NAMESPACE} \
+    --name ${HELM_NAME} \
+    --namespace ${SVCCAT_NAMESPACE} \
     --set apiserver.auth.enabled=true \
     --set useAggregator=true \
+    --set apiserver.insecure=false \
     --set apiserver.tls.caFileName=${SC_SERVING_CA} \
     --set apiserver.tls.certFileName=${SC_SERVING_CERT} \
     --set apiserver.tls.keyFileName=${SC_SERVING_KEY}
@@ -211,7 +212,7 @@ Before installing the helm chart, run the script in contrib by
 `source`ing it, to define all of the necessary variables.
 
 ```shell
-source /contrib/svc-cat-apiserver-aggregation-tls-setup.sh
+source charts/catalog/aggregation/tls-setup/sh
 ```
 
 To delete, all resources, execute the following:
