@@ -73,7 +73,7 @@ these files. It requires the [`cfssl` tools](https://github.com/cloudflare/cfssl
 this script please ensure that you have them installed by running the following command:
 
 ```console
-go get -u github.com/cloudflare/cfssl/cmd/...`
+go get -u github.com/cloudflare/cfssl/cmd/...
 ```
 
 After you have those installed, run the following script to create the TLS files:
