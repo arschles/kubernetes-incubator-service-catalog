@@ -197,14 +197,17 @@ Because we haven't created any resources in the service-catalog API server yet,
 `kubectl get` will return an empty list of resources.
 
 ```console
-kubectl --context=service-catalog get brokers,serviceclasses,instances,bindings
+kubectl get brokers,serviceclasses,instances,binding.servicecatalog.k8s.io
 No resources found
 ```
+
+Note that you _must_ reference `Binding`s by their fully-qualified name: 
+`binding.servicecatalog.k8s.io`.
 
 Create the new `Broker` resource with the following command:
 
 ```console
-kubectl --context=service-catalog create -f contrib/examples/walkthrough/ups-broker.yaml
+kubectl create -f contrib/examples/walkthrough/ups-broker.yaml
 ```
 
 The output of that command should be the following:
@@ -220,7 +223,7 @@ by querying the broker server to see what services it offers and creates a
 We can check the status of the broker using `kubectl get`:
 
 ```console
-kubectl --context=service-catalog get brokers ups-broker -o yaml
+kubectl get brokers ups-broker -o yaml
 ```
 
 We should see something like:
@@ -257,7 +260,7 @@ provides. We can view the `ServiceClass` resources available in the cluster by
 executing:
 
 ```console
-kubectl --context=service-catalog get serviceclasses
+kubectl get serviceclasses
 ```
 
 We should see something like:
@@ -272,7 +275,7 @@ As we can see, the UPS broker provides a type of service called
 offering:
 
 ```console
-kubectl --context=service-catalog get serviceclasses user-provided-service -o yaml
+kubectl get serviceclasses user-provided-service -o yaml
 ```
 
 We should see something like:
@@ -314,7 +317,7 @@ kubectl create namespace test-ns
 We can then continue to create an `Instance`:
 
 ```console
-kubectl --context=service-catalog create -f contrib/examples/walkthrough/ups-instance.yaml
+kubectl create -f contrib/examples/walkthrough/ups-instance.yaml
 ```
 
 That operation should output:
@@ -328,7 +331,7 @@ with the appropriate broker server to initiate provisioning. We can check the
 status of this process like so:
 
 ```console
-kubectl --context=service-catalog get instances -n test-ns ups-instance -o yaml
+kubectl get instances -n test-ns ups-instance -o yaml
 ```
 
 We should see something like:
@@ -362,7 +365,7 @@ we will create a [`Binding`](../contrib/examples/walkthrough/ups-binding.yaml)
 resource.
 
 ```console
-kubectl --context=service-catalog create -f contrib/examples/walkthrough/ups-binding.yaml
+kubectl create -f contrib/examples/walkthrough/ups-binding.yaml
 ```
 
 That command should output:
@@ -378,7 +381,7 @@ service catalog controller will insert into a Kubernetes `Secret`. We can check
 the status of this process like so:
 
 ```console
-kubectl --context=service-catalog get bindings -n test-ns ups-binding -o yaml
+kubectl get binding.servicecatalog.k8s.io -n test-ns ups-binding -o yaml
 ```
 
 We should see something like:
@@ -427,7 +430,7 @@ Now, let's unbind from the instance.  To do this, we simply *delete* the
 `Binding` resource that we previously created:
 
 ```console
-kubectl --context=service-catalog delete -n test-ns bindings ups-binding
+kubectl delete -n test-ns binding.servicecatalog.k8s.io ups-binding
 ```
 
 Checking the `Secret`s in the `test-ns` namespace, we should see that
@@ -445,7 +448,7 @@ Now, we can deprovision the instance.  To do this, we simply *delete* the
 `Instance` resource that we previously created:
 
 ```console
-kubectl --context=service-catalog delete -n test-ns instances ups-instance
+kubectl delete -n test-ns instance ups-instance
 ```
 
 ## Step 12 - Deleting the Broker
@@ -454,14 +457,14 @@ Next, we should remove the broker server, and the services it offers, from the c
 so by simply deleting the broker:
 
 ```console
-kubectl --context=service-catalog delete brokers ups-broker
+kubectl delete broker ups-broker
 ```
 
 We should then see that all the `ServiceClass` resources that came from that
 broker have also been deleted:
 
 ```console
-kubectl --context=service-catalog get serviceclasses
+kubectl get serviceclasses
 No resources found
 ```
 
