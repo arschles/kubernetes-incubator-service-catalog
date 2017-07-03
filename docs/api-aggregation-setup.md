@@ -213,3 +213,10 @@ Before installing the helm chart, run the script in contrib by
 ```shell
 source /contrib/svc-cat-apiserver-aggregation-tls-setup.sh
 ```
+
+To delete, all resources, execute the following:
+
+```console
+helm delete --purge catalog
+k delete apiservice v1alpha1.servicecatalog.k8s.io
+```
