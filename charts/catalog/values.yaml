@@ -20,6 +20,11 @@ apiserver:
     # object. This field is required if apiserver.auth.enabled is true.
     # Base64-encoded private key
     keyFileName:
+    # The name of the file that contains the CA to authenticate connections from API server
+    # proxies. This field is not required. If it is not set, the service-catalog API server 
+    # will be started with the --authentication-skip-lookup flag, which will disable the auth checks
+    # from the API server proxies as well as client cert authentication.
+    requestHeaderCA:
   # Attributes of the apiserver's service resource
   service:
     # Type of service; valid values are "LoadBalancer" and "NodePort"
