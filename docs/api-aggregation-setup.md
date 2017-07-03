@@ -181,10 +181,10 @@ keys we just generated inline.
 helm install charts/catalog \
     --name ${HELM_NAME} --namespace ${SVCCAT_NAMESPACE} \
     --set apiserver.auth.enabled=true \
-        --set useAggregator=true \
-        --set apiserver.tls.ca=$(base64 --wrap 0 ${SC_SERVING_CA}) \
-        --set apiserver.tls.cert=$(base64 --wrap 0 ${SC_SERVING_CERT}) \
-        --set apiserver.tls.key=$(base64 --wrap 0 ${SC_SERVING_KEY})
+    --set useAggregator=true \
+    --set apiserver.tls.caFileName=${SC_SERVING_CA} \
+    --set apiserver.tls.certFileName=${SC_SERVING_CERT} \
+    --set apiserver.tls.keyFileName=${SC_SERVING_KEY}
 ``` 
 
 `servicecatalog.k8s.io/v1alpha1` should show up under `kubectl
